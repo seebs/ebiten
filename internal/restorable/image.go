@@ -30,13 +30,14 @@ type drawImageHistoryItem struct {
 	image    *Image
 	vertices []float32
 	colorm   *affine.ColorM
+	tint     *color.RGBA
 	mode     opengl.CompositeMode
 	filter   graphics.Filter
 }
 
 // canMerge returns a boolean value indicating whether the drawImageHistoryItem d
 // can be merged with the given conditions.
-func (d *drawImageHistoryItem) canMerge(image *Image, colorm *affine.ColorM, mode opengl.CompositeMode, filter graphics.Filter) bool {
+func (d *drawImageHistoryItem) canMerge(image *Image, colorm *affine.ColorM, tint *color.RGBA, mode opengl.CompositeMode, filter graphics.Filter) bool {
 	if d.image != image {
 		return false
 	}
@@ -44,6 +45,9 @@ func (d *drawImageHistoryItem) canMerge(image *Image, colorm *affine.ColorM, mod
 		return false
 	}
 	if d.mode != mode {
+		return false
+	}
+	if d.tint != tint {
 		return false
 	}
 	if d.filter != filter {
@@ -143,8 +147,8 @@ func (i *Image) ReplacePixels(pixels []byte, x, y, width, height int) {
 }
 
 // DrawImage draws a given image img to the image.
-func (i *Image) DrawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM, colorm *affine.ColorM, mode opengl.CompositeMode, filter graphics.Filter) {
-	vs := img.vertices(sx0, sy0, sx1, sy1, geom)
+func (i *Image) DrawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM, colorm *affine.ColorM, tint *color.RGBA, mode opengl.CompositeMode, filter graphics.Filter) {
+	vs := img.vertices(sx0, sy0, sx1, sy1, tint, geom)
 	if vs == nil {
 		return
 	}
@@ -152,19 +156,19 @@ func (i *Image) DrawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM,
 	if img.stale || img.volatile || i.screen || !IsRestoringEnabled() {
 		i.makeStale()
 	} else {
-		i.appendDrawImageHistory(img, vs, colorm, mode, filter)
+		i.appendDrawImageHistory(img, vs, colorm, tint, mode, filter)
 	}
 	i.image.DrawImage(img.image, vs, colorm, mode, filter)
 }
 
 // appendDrawImageHistory appends a draw-image history item to the image.
-func (i *Image) appendDrawImageHistory(image *Image, vertices []float32, colorm *affine.ColorM, mode opengl.CompositeMode, filter graphics.Filter) {
+func (i *Image) appendDrawImageHistory(image *Image, vertices []float32, colorm *affine.ColorM, tint *color.RGBA, mode opengl.CompositeMode, filter graphics.Filter) {
 	if i.stale || i.volatile || i.screen {
 		return
 	}
 	if len(i.drawImageHistory) > 0 {
 		last := i.drawImageHistory[len(i.drawImageHistory)-1]
-		if last.canMerge(image, colorm, mode, filter) {
+		if last.canMerge(image, colorm, tint, mode, filter) {
 			last.vertices = append(last.vertices, vertices...)
 			return
 		}
@@ -180,6 +184,7 @@ func (i *Image) appendDrawImageHistory(image *Image, vertices []float32, colorm 
 		image:    image,
 		vertices: vertices,
 		colorm:   colorm,
+		tint:	  tint,
 		mode:     mode,
 		filter:   filter,
 	}

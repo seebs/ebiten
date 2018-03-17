@@ -17,6 +17,7 @@ package restorable
 import (
 	"github.com/hajimehoshi/ebiten/internal/affine"
 	"github.com/hajimehoshi/ebiten/internal/graphics"
+	"image/color"
 )
 
 var (
@@ -43,7 +44,7 @@ func (v *verticesBackend) get() []float32 {
 	return s
 }
 
-func (i *Image) vertices(sx0, sy0, sx1, sy1 int, geo *affine.GeoM) []float32 {
+func (i *Image) vertices(sx0, sy0, sx1, sy1 int, tint *color.RGBA, geo *affine.GeoM) []float32 {
 	if sx0 >= sx1 || sy0 >= sy1 {
 		return nil
 	}
@@ -56,6 +57,13 @@ func (i *Image) vertices(sx0, sy0, sx1, sy1 int, geo *affine.GeoM) []float32 {
 
 	x0, y0 := 0.0, 0.0
 	x1, y1 := float64(sx1-sx0), float64(sy1-sy0)
+	if tint == nil {
+		tint = &color.RGBA{255, 255, 255, 255}
+	}
+	r := float32(tint.R) / 255
+	g := float32(tint.G) / 255
+	b := float32(tint.B) / 255
+	a := float32(tint.A) / 255
 
 	// it really feels like we should be able to cache this computation
 	// but it may not matter.
@@ -85,30 +93,47 @@ func (i *Image) vertices(sx0, sy0, sx1, sy1 int, geo *affine.GeoM) []float32 {
 	vs[4] = u1
 	vs[5] = v1
 
+	vs[6] = r
+	vs[7] = g
+	vs[8] = b
+	vs[9] = a
+
 	// and the same for the other three coordinates
 	x, y = geo.Apply32(x1, y0)
-	vs[6] = x
-	vs[7] = y
-	vs[8] = u1
-	vs[9] = v0
-	vs[10] = u0
-	vs[11] = v1
-
-	x, y = geo.Apply32(x0, y1)
-	vs[12] = x
-	vs[13] = y
+	vs[10] = x
+	vs[11] = y
+	vs[12] = u1
+	vs[13] = v0
 	vs[14] = u0
 	vs[15] = v1
-	vs[16] = u1
-	vs[17] = v0
+	vs[16] = r
+	vs[17] = g
+	vs[18] = b
+	vs[19] = a
+
+	x, y = geo.Apply32(x0, y1)
+	vs[20] = x
+	vs[21] = y
+	vs[22] = u0
+	vs[23] = v1
+	vs[24] = u1
+	vs[25] = v0
+	vs[26] = r
+	vs[27] = g
+	vs[28] = b
+	vs[29] = a
 
 	x, y = geo.Apply32(x1, y1)
-	vs[18] = x
-	vs[19] = y
-	vs[20] = u1
-	vs[21] = v1
-	vs[22] = u0
-	vs[23] = v0
+	vs[30] = x
+	vs[31] = y
+	vs[32] = u1
+	vs[33] = v1
+	vs[34] = u0
+	vs[35] = v0
+	vs[36] = r
+	vs[37] = g
+	vs[38] = b
+	vs[39] = a
 
 	return vs
 }

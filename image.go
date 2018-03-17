@@ -150,6 +150,10 @@ func (i *Image) isDisposed() bool {
 //
 // DrawImage always returns nil as of 1.5.0-alpha.
 func (i *Image) DrawImage(img *Image, options *DrawImageOptions) error {
+	return i.DrawImageColor(img, options, nil)
+}
+
+func (i *Image) DrawImageColor(img *Image, options *DrawImageOptions, tint *color.RGBA) error {
 	i.copyCheck()
 	if img.isDisposed() {
 		panic("ebiten: the given image to DrawImage must not be disposed")
@@ -231,7 +235,7 @@ func (i *Image) DrawImage(img *Image, options *DrawImageOptions) error {
 		filter = graphics.Filter(img.filter)
 	}
 
-	i.shareableImage.DrawImage(img.shareableImage, sx0, sy0, sx1, sy1, geom, options.ColorM.impl, mode, filter)
+	i.shareableImage.DrawImage(img.shareableImage, sx0, sy0, sx1, sy1, geom, options.ColorM.impl, tint, mode, filter)
 	return nil
 }
 

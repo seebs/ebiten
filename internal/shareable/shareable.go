@@ -59,7 +59,7 @@ func (b *backend) TryAlloc(width, height int) (*packing.Node, bool) {
 	}
 	s := b.page.Size()
 	newImg := restorable.NewImage(s, s, false)
-	newImg.DrawImage(b.restorable, 0, 0, s, s, nil, nil, opengl.CompositeModeCopy, graphics.FilterNearest)
+	newImg.DrawImage(b.restorable, 0, 0, s, s, nil, nil, nil, opengl.CompositeModeCopy, graphics.FilterNearest)
 	b.restorable.Dispose()
 	b.restorable = newImg
 
@@ -92,7 +92,7 @@ func (s *Image) ensureNotShared() {
 
 	x, y, w, h := s.region()
 	newImg := restorable.NewImage(w, h, false)
-	newImg.DrawImage(s.backend.restorable, x, y, w, h, nil, nil, opengl.CompositeModeCopy, graphics.FilterNearest)
+	newImg.DrawImage(s.backend.restorable, x, y, w, h, nil, nil, nil, opengl.CompositeModeCopy, graphics.FilterNearest)
 
 	s.dispose()
 	s.backend = &backend{
@@ -115,13 +115,13 @@ func (s *Image) Size() (width, height int) {
 	return w, h
 }
 
-func (s *Image) DrawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM, colorm *affine.ColorM, mode opengl.CompositeMode, filter graphics.Filter) {
+func (s *Image) DrawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM, colorm *affine.ColorM, tint *color.RGBA, mode opengl.CompositeMode, filter graphics.Filter) {
 	backendsM.Lock()
 	defer backendsM.Unlock()
-	s.drawImage(img, sx0, sy0, sx1, sy1, geom, colorm, mode, filter)
+	s.drawImage(img, sx0, sy0, sx1, sy1, geom, colorm, tint, mode, filter)
 }
 
-func (s *Image) drawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM, colorm *affine.ColorM, mode opengl.CompositeMode, filter graphics.Filter) {
+func (s *Image) drawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM, colorm *affine.ColorM, tint *color.RGBA, mode opengl.CompositeMode, filter graphics.Filter) {
 	s.ensureNotShared()
 
 	// Compare i and img after ensuring i is not shared, or
@@ -135,7 +135,7 @@ func (s *Image) drawImage(img *Image, sx0, sy0, sx1, sy1 int, geom *affine.GeoM,
 	sy0 += dy
 	sx1 += dx
 	sy1 += dy
-	s.backend.restorable.DrawImage(img.backend.restorable, sx0, sy0, sx1, sy1, geom, colorm, mode, filter)
+	s.backend.restorable.DrawImage(img.backend.restorable, sx0, sy0, sx1, sy1, geom, colorm, tint, mode, filter)
 }
 
 func (s *Image) ReplacePixels(p []byte) {

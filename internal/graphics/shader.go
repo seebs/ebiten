@@ -50,14 +50,17 @@ const (
 uniform mat4 projection_matrix;
 attribute vec2 vertex;
 attribute vec4 tex_coord;
+attribute vec4 color;
 varying vec2 varying_tex_coord;
 varying vec2 varying_tex_coord_min;
 varying vec2 varying_tex_coord_max;
+varying vec4 color_out;
 
 void main(void) {
   varying_tex_coord = vec2(tex_coord[0], tex_coord[1]);
   varying_tex_coord_min = vec2(min(tex_coord[0], tex_coord[2]), min(tex_coord[1], tex_coord[3]));
   varying_tex_coord_max = vec2(max(tex_coord[0], tex_coord[2]), max(tex_coord[1], tex_coord[3]));
+  color_out = color;
   gl_Position = projection_matrix * vec4(vertex, 0, 1);
 }
 `
@@ -87,6 +90,7 @@ uniform highp float scale;
 varying highp vec2 varying_tex_coord;
 varying highp vec2 varying_tex_coord_min;
 varying highp vec2 varying_tex_coord_max;
+varying highp vec4 color_out;
 
 highp vec2 roundTexel(highp vec2 p) {
   // highp (relative) precision is 2^(-16) in the spec.
@@ -163,6 +167,8 @@ void main(void) {
   if (0.0 < color.a) {
     color.rgb /= color.a;
   }
+  // Apply tint/multiplier
+  color *= color_out;
   // Apply the color matrix
   color = (color_matrix * color) + color_matrix_translation;
   color = clamp(color, 0.0, 1.0);
