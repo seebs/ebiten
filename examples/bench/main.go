@@ -179,6 +179,7 @@ func benchmarks(screen *ebiten.Image) error {
 			go func(idx int) {
 				benchList[idx].result = testing.Benchmark(func(b *testing.B) {
 					b.StopTimer()
+					ebiten.SetBenchmark(b)
 					var elapsed time.Duration
 					// run for at least 60 frames, so the FPS value should mean something
 					for i := 0; i < 60; i++ {
@@ -192,6 +193,7 @@ func benchmarks(screen *ebiten.Image) error {
 						benchDone <- false
 					}
 					fmt.Printf("%16s: N %5d, FPS: %5.2f, time %10v/60 frames\n", benchList[idx].name, b.N, ebiten.CurrentFPS(), elapsed)
+					ebiten.SetBenchmark(nil)
 				})
 				<-benchGo
 				benchDone <- true

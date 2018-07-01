@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync/atomic"
+	"testing"
 
 	"github.com/hajimehoshi/ebiten/internal/clock"
 	"github.com/hajimehoshi/ebiten/internal/devicescale"
@@ -41,6 +42,13 @@ const FPS = clock.FPS
 // This function is concurrent-safe.
 func CurrentFPS() float64 {
 	return clock.CurrentFPS()
+}
+
+func SetBenchmark(b *testing.B) {
+	g, ok := theGraphicsContext.Load().(*graphicsContext)
+	if ok && g != nil {
+		g.SetBenchmark(b)
+	}
 }
 
 var (
