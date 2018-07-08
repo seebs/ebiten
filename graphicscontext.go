@@ -15,8 +15,6 @@
 package ebiten
 
 import (
-	"testing"
-
 	"github.com/hajimehoshi/ebiten/internal/clock"
 	"github.com/hajimehoshi/ebiten/internal/graphics"
 	"github.com/hajimehoshi/ebiten/internal/hooks"
@@ -40,7 +38,6 @@ type graphicsContext struct {
 	invalidated bool // browser only
 	offsetX     float64
 	offsetY     float64
-	benchmark   *testing.B
 }
 
 func (c *graphicsContext) Invalidate() {
@@ -71,10 +68,6 @@ func (c *graphicsContext) SetSize(screenWidth, screenHeight int, screenScale flo
 	c.offsetY = py0
 }
 
-func (c *graphicsContext) SetBenchmark(b *testing.B) {
-	c.benchmark = b
-}
-
 func (c *graphicsContext) initializeIfNeeded() error {
 	if !c.initialized {
 		if err := shareable.InitializeGLState(); err != nil {
@@ -89,6 +82,10 @@ func (c *graphicsContext) initializeIfNeeded() error {
 }
 
 func (c *graphicsContext) Update(afterFrameUpdate func()) error {
+	if activeBenchmark != nil {
+		activeBenchmark.StartTimer()
+		defer activeBenchmark.StopTimer()
+	}
 	updateCount := clock.Update()
 
 	if err := c.initializeIfNeeded(); err != nil {
@@ -132,10 +129,6 @@ func (c *graphicsContext) Update(afterFrameUpdate func()) error {
 	op.Filter = filterScreen
 	_ = c.screen.DrawImage(c.offscreen, op)
 
-	if c.benchmark != nil {
-		c.benchmark.StartTimer()
-		defer c.benchmark.StopTimer()
-	}
 	if err := shareable.ResolveStaleImages(); err != nil {
 		return err
 	}

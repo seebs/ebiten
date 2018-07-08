@@ -21,7 +21,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync/atomic"
-	"testing"
 
 	"github.com/hajimehoshi/ebiten/internal/clock"
 	"github.com/hajimehoshi/ebiten/internal/devicescale"
@@ -44,11 +43,22 @@ func CurrentFPS() float64 {
 	return clock.CurrentFPS()
 }
 
-func SetBenchmark(b *testing.B) {
-	g, ok := theGraphicsContext.Load().(*graphicsContext)
-	if ok && g != nil {
-		g.SetBenchmark(b)
-	}
+// GraphicsBenchmark is a small-but-relevant subset of the interface
+// provided by testing.B; this is the subset of functionality needed to
+// have simple rendering benchmarks available.
+type GraphicsBenchmark interface {
+	StartTimer()
+	StopTimer()
+}
+
+var activeBenchmark GraphicsBenchmark
+
+// SetBenchmark tells the ebiten frame update loop to start and stop
+// a benchmark's timer during actual frame updates, allowing you to benchmark
+// performance of things happening during frames, over multiple frames;
+// see examples/bench for a usage example.
+func SetBenchmark(b GraphicsBenchmark) {
+	activeBenchmark = b
 }
 
 var (
