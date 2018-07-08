@@ -236,4 +236,3 @@ func openEbitenImage() (*ebiten.Image, image.Image, error) {
 	}
 	return eimg, img, nil
 }
-
