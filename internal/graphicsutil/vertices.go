@@ -16,11 +16,12 @@ package graphicsutil
 
 import (
 	"github.com/hajimehoshi/ebiten/internal/graphics"
-	"github.com/hajimehoshi/ebiten/internal/opengl"
 )
 
 var (
 	theVerticesBackend = &verticesBackend{}
+	vertexFloats       = graphics.VertexSizeInFloats()
+	quadFloats         = vertexFloats * 4
 )
 
 type verticesBackend struct {
@@ -30,13 +31,12 @@ type verticesBackend struct {
 
 func (v *verticesBackend) sliceForOneQuad() []float32 {
 	const num = 256
-	size := 4 * graphics.VertexSizeInBytes() / opengl.Float.SizeInBytes()
 	if v.backend == nil {
-		v.backend = make([]float32, size*num)
+		v.backend = make([]float32, quadFloats*num)
 	}
-	s := v.backend[v.head : v.head+size]
-	v.head += size
-	if v.head+size > len(v.backend) {
+	s := v.backend[v.head : v.head+quadFloats]
+	v.head += quadFloats
+	if v.head+quadFloats > len(v.backend) {
 		v.backend = nil
 		v.head = 0
 	}
@@ -47,6 +47,8 @@ func isPowerOf2(x int) bool {
 	return (x & (x - 1)) == 0
 }
 
+// QuadVertices populates the x/y/u0/v0/u1/v1 values for a quad; if the vertex format contains
+// other values, they are left alone.
 func QuadVertices(width, height int, sx0, sy0, sx1, sy1 int, a, b, c, d, tx, ty float32) []float32 {
 	if !isPowerOf2(width) {
 		panic("not reached")
@@ -71,9 +73,11 @@ func QuadVertices(width, height int, sx0, sy0, sx1, sy1 int, a, b, c, d, tx, ty 
 func quadVerticesImpl(x, y, u0, v0, u1, v1, a, b, c, d, tx, ty float32) []float32 {
 	// Specifying a range explicitly here is redundant but this helps optimization
 	// to eliminate boundry checks.
-	vs := theVerticesBackend.sliceForOneQuad()[0:24]
+	qs := theVerticesBackend.sliceForOneQuad()[0:quadFloats]
 
 	ax, by, cx, dy := a*x, b*y, c*x, d*y
+
+	vs := qs[vertexFloats*0 : vertexFloats*1]
 
 	// Vertex coordinates
 	vs[0] = tx
@@ -88,26 +92,30 @@ func quadVerticesImpl(x, y, u0, v0, u1, v1, a, b, c, d, tx, ty float32) []float3
 	vs[5] = v1
 
 	// and the same for the other three coordinates
-	vs[6] = ax + tx
-	vs[7] = cx + ty
-	vs[8] = u1
-	vs[9] = v0
-	vs[10] = u0
-	vs[11] = v1
+	vs = qs[vertexFloats*1 : vertexFloats*2]
 
-	vs[12] = by + tx
-	vs[13] = dy + ty
-	vs[14] = u0
-	vs[15] = v1
-	vs[16] = u1
-	vs[17] = v0
+	vs[0] = ax + tx
+	vs[1] = cx + ty
+	vs[2] = u1
+	vs[3] = v0
+	vs[4] = u0
+	vs[5] = v1
 
-	vs[18] = ax + by + tx
-	vs[19] = cx + dy + ty
-	vs[20] = u1
-	vs[21] = v1
-	vs[22] = u0
-	vs[23] = v0
+	vs = qs[vertexFloats*2 : vertexFloats*3]
+	vs[0] = by + tx
+	vs[1] = dy + ty
+	vs[2] = u0
+	vs[3] = v1
+	vs[4] = u1
+	vs[5] = v0
 
-	return vs
+	vs = qs[vertexFloats*3 : vertexFloats*4]
+	vs[0] = ax + by + tx
+	vs[1] = cx + dy + ty
+	vs[2] = u1
+	vs[3] = v1
+	vs[4] = u0
+	vs[5] = v0
+
+	return qs
 }

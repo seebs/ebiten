@@ -36,21 +36,30 @@ type arrayBufferLayoutPart struct {
 // An array buffer in OpenGL is a buffer representing vertices and
 // is passed to a vertex shader.
 type arrayBufferLayout struct {
-	parts []arrayBufferLayoutPart
-	total int
+	parts   []arrayBufferLayoutPart
+	tBytes  int
+	tFloats int
 }
 
 // totalBytes returns the size in bytes for one element of the array buffer.
 func (a *arrayBufferLayout) totalBytes() int {
-	if a.total != 0 {
-		return a.total
+	if a.tBytes != 0 {
+		return a.tBytes
 	}
 	t := 0
 	for _, p := range a.parts {
 		t += p.dataType.SizeInBytes() * p.num
 	}
-	a.total = t
-	return a.total
+	a.tBytes = t
+	return a.tBytes
+}
+
+func (a *arrayBufferLayout) totalFloats() int {
+	if a.tFloats != 0 {
+		return a.tFloats
+	}
+	a.tFloats = a.totalBytes() / opengl.Float.SizeInBytes()
+	return a.tFloats
 }
 
 // newArrayBuffer creates OpenGL's buffer object for the array buffer.

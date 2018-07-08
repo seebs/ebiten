@@ -197,6 +197,10 @@ func VertexSizeInBytes() int {
 	return theArrayBufferLayout.totalBytes()
 }
 
+func VertexSizeInFloats() int {
+	return theArrayBufferLayout.totalFloats()
+}
+
 // Exec executes the drawImageCommand.
 func (c *drawImageCommand) Exec(indexOffsetInBytes int) error {
 	f, err := c.dst.createFramebufferIfNeeded()
