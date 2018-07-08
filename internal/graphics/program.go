@@ -103,6 +103,11 @@ var (
 				dataType: opengl.Float,
 				num:      4,
 			},
+			{
+				name:     "color_bits",
+				dataType: opengl.Float,
+				num:      4,
+			},
 		},
 	}
 )

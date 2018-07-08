@@ -50,15 +50,18 @@ const (
 uniform mat4 projection_matrix;
 attribute vec2 vertex;
 attribute vec4 tex_coord;
+attribute vec4 color_bits;
 varying vec2 varying_tex_coord;
 varying vec2 varying_tex_coord_min;
 varying vec2 varying_tex_coord_max;
+varying vec4 varying_color;
 
 void main(void) {
   varying_tex_coord = vec2(tex_coord[0], tex_coord[1]);
   varying_tex_coord_min = vec2(min(tex_coord[0], tex_coord[2]), min(tex_coord[1], tex_coord[3]));
   varying_tex_coord_max = vec2(max(tex_coord[0], tex_coord[2]), max(tex_coord[1], tex_coord[3]));
   gl_Position = projection_matrix * vec4(vertex, 0, 1);
+  varying_color = color_bits;
 }
 `
 	shaderStrFragment = `
@@ -85,6 +88,7 @@ uniform highp float scale;
 varying highp vec2 varying_tex_coord;
 varying highp vec2 varying_tex_coord_min;
 varying highp vec2 varying_tex_coord_max;
+varying vec4 varying_color;
 
 void main(void) {
   highp vec2 pos = varying_tex_coord;
@@ -149,6 +153,7 @@ void main(void) {
   }
   // Apply the color matrix
   color = (color_matrix_body * color) + color_matrix_translation;
+  color *= varying_color;
   color = clamp(color, 0.0, 1.0);
   // Premultiply alpha
   color.rgb *= color.a;

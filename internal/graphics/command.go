@@ -99,6 +99,14 @@ func (q *commandQueue) EnqueueDrawImageCommand(dst, src *Image, vertices []float
 	if len(indices) > indicesNum {
 		panic("not reached")
 	}
+	vertexFloats := VertexSizeInFloats()
+	// temporary hack: populate color naively
+	for i := 0; i < len(vertices); i += vertexFloats {
+		vs := vertices[i : i+vertexFloats]
+		for j := 6; j < vertexFloats; j++ {
+			vs[j] = 1.0
+		}
+	}
 
 	split := false
 	if q.tmpNumIndices+len(indices) > indicesNum {
@@ -109,7 +117,7 @@ func (q *commandQueue) EnqueueDrawImageCommand(dst, src *Image, vertices []float
 
 	q.appendVertices(vertices)
 	q.appendIndices(indices, uint16(q.nextIndex))
-	q.nextIndex += len(vertices) * opengl.Float.SizeInBytes() / VertexSizeInBytes()
+	q.nextIndex += len(vertices) / vertexFloats
 	q.tmpNumIndices += len(indices)
 
 	q.doEnqueueDrawImageCommand(dst, src, len(vertices), len(indices), color, mode, filter, split)
