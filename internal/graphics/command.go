@@ -45,14 +45,6 @@ type commandQueue struct {
 	// vertices represents a vertices data in OpenGL's array buffer.
 	vertices []float32
 
-	// nvertices represents the current length of vertices.
-	// nvertices must <= len(vertices).
-	// vertices is never shrunk since re-extending a vertices buffer is heavy.
-	//
-	// TODO: This is a number of float32 values, not a number of vertices.
-	// Rename or fix the program.
-	nvertices int
-
 	indices  []uint16
 	nindices int
 
@@ -65,12 +57,7 @@ var theCommandQueue = &commandQueue{}
 
 // appendVertices appends vertices to the queue.
 func (q *commandQueue) appendVertices(vertices []float32) {
-	if len(q.vertices) < q.nvertices+len(vertices) {
-		n := q.nvertices + len(vertices) - len(q.vertices)
-		q.vertices = append(q.vertices, make([]float32, n)...)
-	}
-	copy(q.vertices[q.nvertices:], vertices)
-	q.nvertices += len(vertices)
+	q.vertices = append(q.vertices, vertices...)
 }
 
 func (q *commandQueue) appendIndices(indices []uint16, offset uint16) {
@@ -181,8 +168,8 @@ func (q *commandQueue) Flush() error {
 		}
 		q.commands = q.commands[nc:]
 	}
-	q.commands = nil
-	q.nvertices = 0
+	q.commands = q.commands[:0]
+	q.vertices = q.vertices[:0]
 	q.nindices = 0
 	q.tmpNumIndices = 0
 	q.nextIndex = 0
