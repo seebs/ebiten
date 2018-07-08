@@ -56,7 +56,7 @@ func main() {
 		}
 	}
 	if !timeGiven {
-		newArgs = append(newArgs, "-test.benchtime=120ms")
+		newArgs = append(newArgs, "-test.benchtime=180ms")
 	}
 	os.Args = append(newArgs, os.Args[1:]...)
 	flag.Parse()
@@ -87,24 +87,33 @@ var benchList = []benchmark{
 	{
 		name: "draw26",
 		fn: func(b *testing.B, screen *ebiten.Image) {
+			op := &ebiten.DrawImageOptions{}
 			for i := 0; i < b.N; i++ {
-				screen.DrawImage(px26, nil)
+				op.GeoM.Reset()
+				op.GeoM.Translate(float64(i*320/b.N), float64(i*200/b.N))
+				screen.DrawImage(px26, op)
 			}
 		},
 	},
 	{
 		name: "draw104",
 		fn: func(b *testing.B, screen *ebiten.Image) {
+			op := &ebiten.DrawImageOptions{}
 			for i := 0; i < b.N; i++ {
-				screen.DrawImage(px104, nil)
+				op.GeoM.Reset()
+				op.GeoM.Translate(float64(i*320/b.N), float64(i*200/b.N))
+				screen.DrawImage(px104, op)
 			}
 		},
 	},
 	{
 		name: "draw416",
 		fn: func(b *testing.B, screen *ebiten.Image) {
+			op := &ebiten.DrawImageOptions{}
 			for i := 0; i < b.N; i++ {
-				screen.DrawImage(px416, nil)
+				op.GeoM.Reset()
+				op.GeoM.Translate(float64(i*320/b.N), float64(i*200/b.N))
+				screen.DrawImage(px416, op)
 			}
 		},
 	},
