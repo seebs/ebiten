@@ -16,6 +16,7 @@ package graphics
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/internal/affine"
 	emath "github.com/hajimehoshi/ebiten/internal/math"
@@ -95,17 +96,22 @@ func (q *commandQueue) doEnqueueDrawImageCommand(dst, src *Image, nvertices, nin
 }
 
 // EnqueueDrawImageCommand enqueues a drawing-image command.
-func (q *commandQueue) EnqueueDrawImageCommand(dst, src *Image, vertices []float32, indices []uint16, color *affine.ColorM, mode opengl.CompositeMode, filter Filter) {
+func (q *commandQueue) EnqueueDrawImageCommand(dst, src *Image, vertices []float32, indices []uint16, cm *affine.ColorM, tints []color.RGBA, mode opengl.CompositeMode, filter Filter) {
 	if len(indices) > indicesNum {
 		panic("not reached")
 	}
 	vertexFloats := VertexSizeInFloats()
 	// temporary hack: populate color naively
-	for i := 0; i < len(vertices); i += vertexFloats {
-		vs := vertices[i : i+vertexFloats]
-		for j := 6; j < vertexFloats; j++ {
-			vs[j] = 1.0
+	tint := color.RGBA{255, 255, 255, 255}
+	for i := 0; i < 4; i++ {
+		vs := vertices[i*vertexFloats : (i+1)*vertexFloats]
+		if len(tints) > 0 {
+			tint = tints[i%len(tints)]
 		}
+		vs[6] = float32(tint.R) / 255.0
+		vs[7] = float32(tint.G) / 255.0
+		vs[8] = float32(tint.B) / 255.0
+		vs[9] = float32(tint.A) / 255.0
 	}
 
 	split := false
@@ -120,7 +126,7 @@ func (q *commandQueue) EnqueueDrawImageCommand(dst, src *Image, vertices []float
 	q.nextIndex += len(vertices) / vertexFloats
 	q.tmpNumIndices += len(indices)
 
-	q.doEnqueueDrawImageCommand(dst, src, len(vertices), len(indices), color, mode, filter, split)
+	q.doEnqueueDrawImageCommand(dst, src, len(vertices), len(indices), cm, mode, filter, split)
 }
 
 // Enqueue enqueues a drawing command other than a draw-image command.

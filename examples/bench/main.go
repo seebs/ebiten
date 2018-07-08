@@ -22,6 +22,7 @@ import (
 	"flag"
 	"fmt"
 	"image"
+	"image/color"
 	_ "image/png"
 	"os"
 	"strings"
@@ -142,6 +143,43 @@ var benchList = []benchmark{
 				ops[idx%2].GeoM.Reset()
 				ops[idx%2].GeoM.Translate(float64(i*320/b.N), float64(i*200/b.N))
 				screen.DrawImage(px26, ops[idx%2])
+			}
+		},
+	},
+	{
+		name: "draw26colorNew",
+		fn: func(b *testing.B, screen *ebiten.Image) {
+			op := &ebiten.DrawImageOptions{}
+			tints := []color.RGBA{color.RGBA{255, 51, 51, 255}, color.RGBA{51, 255, 51, 255}}
+			for i := 0; i < b.N; i++ {
+				idx := i % 2
+				op.GeoM.Reset()
+				op.GeoM.Translate(float64(i*320/b.N), float64(i*200/b.N))
+				op.Tints = tints[idx : idx+1]
+				screen.DrawImage(px26, op)
+			}
+		},
+	},
+	{
+		name: "draw26colorNew4",
+		fn: func(b *testing.B, screen *ebiten.Image) {
+			op := &ebiten.DrawImageOptions{}
+			tints := []color.RGBA{
+				color.RGBA{255, 51, 51, 255},
+				color.RGBA{51, 255, 51, 255},
+				color.RGBA{51, 51, 255, 255},
+				color.RGBA{255, 255, 0, 255},
+				color.RGBA{255, 51, 51, 255},
+				color.RGBA{51, 255, 51, 255},
+				color.RGBA{51, 51, 255, 255},
+				color.RGBA{255, 255, 0, 255},
+			}
+			for i := 0; i < b.N; i++ {
+				idx := i % 4
+				op.GeoM.Reset()
+				op.GeoM.Translate(float64(i*320/b.N), float64(i*200/b.N))
+				op.Tints = tints[idx : idx+4]
+				screen.DrawImage(px26, op)
 			}
 		},
 	},

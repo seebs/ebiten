@@ -238,7 +238,7 @@ func (i *Image) DrawImage(img *Image, options *DrawImageOptions) error {
 	}
 
 	a, b, c, d, tx, ty := geom.elements()
-	i.shareableImage.DrawImage(img.shareableImage, sx0, sy0, sx1, sy1, a, b, c, d, tx, ty, options.ColorM.impl, mode, filter)
+	i.shareableImage.DrawImage(img.shareableImage, sx0, sy0, sx1, sy1, a, b, c, d, tx, ty, options.ColorM.impl, options.Tints, mode, filter)
 	return nil
 }
 
@@ -359,6 +359,8 @@ type DrawImageOptions struct {
 
 	// Deprecated (as of 1.1.0-alpha): Use SourceRect instead.
 	Parts []ImagePart
+
+	Tints []color.RGBA
 }
 
 // NewImage returns an empty image.
